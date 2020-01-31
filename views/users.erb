@@ -1,0 +1,22 @@
+<%= @user['name'] %>
+<a href="/follow/<%= "#{@user['id']}" %>">フォローする</a>
+
+<% if @tweets.to_a.first == nil%>
+  投稿がありません。
+<% else%>
+
+       <p>投稿内容</p>
+      <% @tweets.each do |tweet| %>
+          <div class="media">
+            <img class="d-flex mr-3 user_icon" src="/images/<%= "#{tweet['user_id']}.jpg" %>" >
+            <%# "/images/...."で、絶対パスで、publicフォルダからスタートする。"./images/...."だと、
+            相対パスでココのファイルからスタートになる。 %>
+          <div class="media-body">
+
+             <p><%= tweet['content'] %></p>
+             <a href="/like/<%= "#{tweet['id']}" %>">いいね！</a>
+             <a href="/re_tweet/<%= "#{tweet['id']}" %>">リツイート</a>
+           </div>
+           </div>
+      <% end %>
+<% end %>

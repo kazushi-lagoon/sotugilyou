@@ -1,0 +1,54 @@
+<a href="/tweet">つぶやく</a>
+<% if @tweets.to_a.first == nil%>
+  投稿がありません。
+<%else%>
+    <% @tweets.each do |tweet| %>
+      <div class="media">
+     <%# <img class="d-flex mr-3" data-src="holder.js/64x64?theme=sky" alt="Generic placeholder image"> %>
+     <a href="/users/<%= "#{tweet['user_id']}" %>"><img class="d-flex mr-3 user_icon" src="/images/<%= "#{tweet['user_id']}.jpg" %>" >
+     </a>
+     <div class="media-body">
+        <% require 'sinatra'
+           require 'sinatra/reloader'
+           require 'sinatra/cookies'
+           require 'pg'
+         client = PG::connect(dbname: 'twitter')
+         user=client.exec("select * from users where id = '#{tweet['user_id']}';").first
+        #  like_users=client.exec("select * from users where '#{session[:id]}' in (select user_id from likes where tweet_id='#{tweet['id']}');")
+         like_users=client.exec("select * from users inner join likes on users.id=likes.user_id where likes.tweet_id='#{tweet['id']}'")
+         retweet_users=client.exec("select * from users inner join relations on users.id=relations.follower_id inner join re_tweets on relations.followed_id = re_tweets.user_id where re_tweets.tweet_id='#{tweet['id']}';")
+         retweet_my=client.exec("select * from users inner join re_tweets on users.id = re_tweets.user_id where re_tweets.tweet_id='#{tweet['id']}';")
+        %>
+
+        <% if like_users %>
+            <% like_users.each do |like_user| %>
+               <% if like_user['user_id']== session[:id] %>
+               <h5 class="mt-0"><%= like_user['name'] %>さんがいいね！しました。</h5>
+               <% end %>
+            <% end %>
+        <% end %>
+        <% if retweet_users %>
+            <% retweet_users.each do |retweet_user| %>
+              <% if retweet_user['follower_id']== session[:id] %>
+                  <% require 'sinatra'
+                     require 'sinatra/reloader'
+                     require 'sinatra/cookies'
+                     require 'pg'
+                     client = PG::connect(dbname: 'twitter')
+                  user_name=client.exec("select * from users where id= '#{retweet_user['user_id']}';").first
+                  %>
+              <h5 class="mt-0"><%= "#{user_name['name']}" %>さんがリツイートしました</h5>
+              <% end %>
+
+            <% end %>
+        <% end %>
+
+
+
+          <a href="/tweets/<%= "#{tweet['id']}" %>"><h9 class="mt-0"><%= user['name'] %>さんのツイート</h9></a>
+          <p><%= tweet['content']%></p>
+     </div>
+     </div>
+    <% end %>
+<% end%>
+
